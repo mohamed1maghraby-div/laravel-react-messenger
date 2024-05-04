@@ -15,9 +15,6 @@ import { useEffect, useState } from "react";
     const [onlineUsers, setOnlineUsers] = useState({});
     const isUserOnline = (userId) => onlineUsers[userId];
 
-    console.log("conversations", conversations);
-    console.log("selectedConversation", selectedConversation);
-
     const onSearch = (ev) => {
         const search = ev.target.value.toLowerCase();
         setLocalConversations(
