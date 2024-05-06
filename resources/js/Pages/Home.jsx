@@ -1,15 +1,19 @@
 import ChatLayout from '@/Layouts/ChatLayout';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/solid';
 import ConversationHeader from '@/Components/App/ConversationHeader';
 import MessageItem from '@/Components/App/MessageItem';
 import MessageInput from '@/Components/App/MessageInput';
 import { useEventBus } from '@/EventBus';
+import axios from 'axios';
 
 function Home({ selectedConversation = null, messages = null }) {
 
     const [localMessages, setLocalMessages] = useState([]);
+    const [noMoreMessages, setNoMoreMessages] = useState(false);
+    const [scrollFromBottom, setScrollFromBottom] = useState(0);
+    const loadMoreIntersect = useRef(null);
     const messagesCtrRef = useRef(null);
     const { on } = useEventBus();
 
@@ -31,6 +35,36 @@ function Home({ selectedConversation = null, messages = null }) {
         }
     }
 
+    const loadMoreMessages = useCallback(() => { //to cache this function
+        if(noMoreMessages){
+            return;
+        }
+        // Find the first message object
+        const firstMessage = localMessages[0];
+        axios.get(route("message.loadOlder", firstMessage.id))
+        .then(({data}) => {
+            if(data.data.length === 0){
+                setNoMoreMessages(true);
+                return;
+            }
+
+            //Calculae how much is scrolled from bottom and scroll to the same position
+            //from bottom after message are loaded
+            const scrollHeight = messagesCtrRef.current.scrollHeight;
+            const scrollTop = messagesCtrRef.current.scrollTop;
+            const clientHeight = messagesCtrRef.current.clientHeight;
+            const tmpScrollFromBottom = scrollHeight - scrollTop - clientHeight;
+
+            console.log("tmpScrollFromBottom ", tmpScrollFromBottom )
+            setScrollFromBottom(scrollHeight - scrollTop - clientHeight)
+
+            setLocalMessages((prevMessages) => {
+                return [...data.data.reverse(), ...prevMessages];
+            });
+
+        })
+    }, [localMessages, noMoreMessages])
+
     useEffect(() => {
         setTimeout(() => {
             if(messagesCtrRef.current)
@@ -38,6 +72,9 @@ function Home({ selectedConversation = null, messages = null }) {
         }, 10)
 
         const offCreated = on('message.created', messageCreated);
+
+        setScrollFromBottom(0);
+        setNoMoreMessages(false);
 
         return () => {
             offCreated();
@@ -48,6 +85,40 @@ function Home({ selectedConversation = null, messages = null }) {
     useEffect(() => {
         setLocalMessages(messages ? messages.data.reverse() : []);
     }, [messages])
+
+    useEffect(() => {
+        // Recover scroll from bottom after messages are loaded
+        if(messagesCtrRef.current && scrollFromBottom !== null){
+            messagesCtrRef.current.scrollTop =
+                messagesCtrRef.current.scrollHeight -
+                messagesCtrRef.current.offsetHeight -
+                scrollFromBottom;
+        }
+
+        if(noMoreMessages){
+            return;
+        }
+
+        const observer = new IntersectionObserver(
+            (entries) => 
+                entries.forEach(
+                    (entry) => entry.isIntersecting && loadMoreMessages()
+                ),
+            {
+                rootMargin: "0px 0px 250px 0px"
+            }
+        );
+
+        if(loadMoreIntersect.current){
+            setTimeout(() => {
+                observer.observe(loadMoreIntersect.current);
+            }, 100)
+        }
+
+        return () => {
+            observer.disconnect();
+        };
+    }, [localMessages])
 
     return (
         <>
@@ -80,6 +151,7 @@ function Home({ selectedConversation = null, messages = null }) {
 
                         {localMessages.length > 0 && (
                             <div className='flex-1 flex flex-col'>
+                                <div ref={loadMoreIntersect}></div>
                                 {localMessages.map((message) => {
                                     return (<MessageItem
                                         key={message.id}
