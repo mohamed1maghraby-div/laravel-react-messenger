@@ -4,6 +4,10 @@ on:
     pull_request:
         types: 
             - closed
+            - reopened
+    push:
+        branches: 
+            - main
 
 jobs:
     print-hello-world:
