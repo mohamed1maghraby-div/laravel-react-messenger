@@ -1,0 +1,10 @@
+name: 01 Basics - First Workflow
+
+on: push
+
+jobs:
+    print-hello-world:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Print Hello World
+              run: echo "Hello, World!"
