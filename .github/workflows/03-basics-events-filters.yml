@@ -1,0 +1,13 @@
+name: 02 Basics Events Filters
+
+on: 
+    pull_request:
+        types: 
+            - closed
+
+jobs:
+    print-hello-world:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Print Hello World
+              run: echo "Hello, World!"
