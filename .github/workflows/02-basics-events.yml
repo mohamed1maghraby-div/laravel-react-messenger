@@ -1,4 +1,4 @@
-name: 01 Basics - First Workflow
+name: 01 Basics - events
 
 on: push
 
