@@ -1,0 +1,12 @@
+name: 04 Basics Events External Trigger
+
+on: 
+    repository_dispatch:
+        types: [custom-event]
+        
+jobs:
+    print-hello-world:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Print Hello World
+              run: echo "Hello, World!"

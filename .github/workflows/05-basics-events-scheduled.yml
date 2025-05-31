@@ -1,0 +1,12 @@
+name: 05 Basics Events Scheduled
+
+on: 
+    schedule:
+        - cron: '0 0 * * *'  # Runs every day at midnight UTC minute / hour / day of month / month / day of week
+        
+jobs:
+    print-hello-world:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Print Hello World
+              run: echo "Hello, World!"
