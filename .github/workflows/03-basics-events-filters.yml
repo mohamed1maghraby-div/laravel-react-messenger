@@ -8,6 +8,8 @@ on:
     push:
         branches: 
             - main
+        # branches-ignore: 
+        #     - main
 
 jobs:
     print-hello-world:
