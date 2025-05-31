@@ -9,4 +9,5 @@ jobs:
         steps:
             - name: Print Context Data
             #   run: echo ${{ github.event_name }} ${{ github.actor }} ${{ github.repository }} ${{ github.workflow }}
-              run: echo ${{ job.status }} 
+              run: echo ${{ toJson(github) }}
+            #   run: echo ${{ job.status }} 
